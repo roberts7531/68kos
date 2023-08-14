@@ -1,9 +1,9 @@
 import base64;
-import serial;
 import time;
-ser = serial.Serial('/dev/ttyUSB0',115200)
-filedest = open('basic.b64','w')
-with open('basic.srec','rb') as file:
+import serial;
+ser = serial.Serial('/dev/tty.usbserial-120',115200)
+filedest = open('C.b64','w')
+with open('drive_c.img','rb') as file:
     while True:
         chunk = file.read(100)
         if not chunk:
@@ -14,3 +14,17 @@ with open('basic.srec','rb') as file:
         filedest.write('\n');
 filedest.write('\0');
 filedest.close()
+filetra = open('basic.b64','r')
+i=0;
+while 1:
+    char = filetra.read(1)
+    if not char:
+        break;
+    ser.write(char.encode("ASCII"))
+    
+    if char=='\n':
+        print(i)
+        ser.read()
+        i = i+1
+    else:
+        ser.read()
