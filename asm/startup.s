@@ -33,6 +33,8 @@ _start:
     #dc.l 0xffffe
     #dc.l reals
 reals:
+    move.w   #0x2000,%SR
+
     #move.l #0,0xB00000
    # movea.l #0,%a0
     #move.l #0xffffe,(%a0)+
@@ -59,7 +61,7 @@ skipbss:
     #MOVE.B #0x30,CRA
     #MOVE.B #0x20,CRA
     #MOVE.B #0x10,CRA
-    #move.b #0x0,IMR
+    #move.b #0x2,IMR
 	#move.b  #0x93, MRA
     #move.b  #0x07, MRA
 	#move.b  #0x60, ACR       | Baud Rate Set #2

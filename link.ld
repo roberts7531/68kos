@@ -23,7 +23,7 @@ MEMORY
 		*(.rodata*)
 	}>RAM
 	rom_data = .;
-. = 0xf0000;
+. = 0xf1000;
  	
  	
  	.data ALIGN(0x4): AT (rom_data) {

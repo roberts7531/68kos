@@ -5,11 +5,22 @@
 
 UART_SRAA = 0x800003;
 UART_TBDA = 0X800007;
+UART_IMR =  0x80000b;
 
 _instVec:
       MOVEA.L #0xB8,%A0
       MOVE.L  #_trap14Handler,(%A0)+
       MOVE.L  #_trap15Handler,(%A0)
+
+      MOVEA.L #0x64,%A0
+      MOVE.L #_intHandler1,(%A0)+
+      MOVE.L #_intHandler2,(%A0)+
+      MOVE.L #_intHandler3,(%A0)+
+      MOVE.L #_intHandler4,(%A0)+
+      MOVE.L #_intHandler5,(%A0)+
+      MOVE.L #_intHandler6,(%A0)+
+      MOVE.L #_intHandler7,(%A0)+
+
       RTS
 
 _cout:
@@ -105,3 +116,33 @@ _diskWrite:
         BSR cpmDiskWrite
         ADD #0x10,%SP
         RTE
+
+_intHandler1:
+        move.l #1,-(%sp)
+        bsr interruptHandler
+        rte
+_intHandler2:
+        move.l #2,-(%sp)
+        bsr interruptHandler
+        rte
+        
+_intHandler3:
+        move.l #3,-(%sp)
+        bsr interruptHandler
+        rte
+_intHandler4:
+        move.l #4,-(%sp)
+        bsr interruptHandler
+        rte
+_intHandler5:
+        move.l #5,-(%sp)
+        bsr interruptHandler
+        rte
+_intHandler6:
+        move.l #6,-(%sp)
+        bsr interruptHandler
+        rte
+_intHandler7:
+        move.l #7,-(%sp)
+        bsr interruptHandler
+        rte

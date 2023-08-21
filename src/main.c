@@ -8,6 +8,7 @@
 #include <malloc.h>
 #include "exceptions.h"
 #include "ccp.h"
+#include "gpu.h"
 FATFS fat;
 char buffer[256];
 FRESULT fr;
@@ -18,6 +19,9 @@ char inChar(){
 	while(!(*UART_SRA&0b1));
 	char c = *UART_TBD;
 	return c;
+}
+void interruptHandler(uint32_t number){
+	printf("Interrupt %ld\r\n",number);
 }
 
 void __attribute__ ((interrupt)) addrerr(void){
@@ -33,7 +37,8 @@ void installExceptions(){
 int main() {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stdin, NULL, _IONBF, 0);
-	
+	startGpu();
+	putChar('C');
 	printf("\r\nCurrent drive contents:\r\n");
 	
 	fr = f_mount(&fat,"",0);
