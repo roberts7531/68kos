@@ -4,6 +4,7 @@
     .extern data_start
     .extern data_size
     .extern _instVec
+    .extern gpuInt
     .globl  _start
     .section .text.startup
 DUART = 0x800000
@@ -33,19 +34,14 @@ _start:
     #dc.l 0xffffe
     #dc.l reals
 reals:
+        move.w   #0x2000,%SR
     #move.l #0,0xB00000
    # movea.l #0,%a0
     #move.l #0xffffe,(%a0)+
     #move.l #reals,(%a0)+
    # move.l #0xffffe,%sp
 
-    movea.l #rom_data,%a0
-    movea.l #data_start,%a1
-    move.l #data_size,%d0
-    beq skipdata
-3:  move.b (%a0)+,(%a1)+
-    subq.l #1,%d0
-    bne 3b
+    
 skipdata:
     movea.l #bss_start,%a0
     move.l #bss_size,%d0
@@ -71,5 +67,26 @@ skipbss:
     #move.b OPR,%d0
 
     #MOVE.B #0x05,CRA
-
+    bsr installInterruptHandler
     jmp main
+
+
+installInterruptHandler:
+    MOVEA.L #0x64,%A0
+      MOVE.L #handler,(%A0)+
+      MOVE.L #handler,(%A0)+
+      MOVE.L #handler,(%A0)+
+      MOVE.L #handler,(%A0)+
+      MOVE.L #handler,(%A0)+
+      MOVE.L #handler,(%A0)+
+      MOVE.L #handler,(%A0)+
+    rts
+
+handler:
+    movem.L %d0-%d7/%a0-%a7, registerBackup
+    bsr gpuInt
+    movem.L registerBackup,%d0-%d7/%a0-%a7
+    rte
+
+    .section .bss
+registerBackup: ds.l 16

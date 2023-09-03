@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "../fatfs/ff.h"
+#include "../fatfs/diskio.h"
 #include <stdio.h>
 #include <string.h>
 #include "main.h"
@@ -15,13 +16,24 @@ FRESULT fr;
 FRESULT res;
 volatile  char *const UART_SRA = (volatile char *const) 0x800003;
 volatile  char *const UART_TBD = (volatile char *const) 0x800007;
+
 char inChar(){
 	while(!(*UART_SRA&0b1));
 	char c = *UART_TBD;
 	return c;
 }
 void interruptHandler(uint32_t number){
-	printf("Interrupt %ld\r\n",number);
+	switch (number)
+	{
+	case 2:
+		gpuInt();
+		break;
+	
+	default:
+		printf("Interrupt %ld\r\n",number);
+
+		break;
+	}
 }
 
 void __attribute__ ((interrupt)) addrerr(void){
@@ -32,13 +44,43 @@ void installExceptions(){
 	uint32_t * location = (uint32_t*) 0xc;
 	*location = (uint32_t)addrerr;
 }
+int isGpuFound=0;
+int isIdeFound=0;
+void initHw(){
+	for(uint32_t i=0x900000;i<=0xf00000;i+= 0x100000){
+		printf("Testing %lx:",i);
+		volatile uint8_t* pointer = (uint8_t*)i+0x5555;
+		*pointer = 0xaa;
+		if(*pointer ==0xaa){
+			pointer++;
+			*pointer = 0x55;
+			if(*pointer ==0x55){
+				printf("Ram found!\r\n");
+				continue;
+			}
+		}
+		
 
+		if(!isGpuFound&&isGpuPresent(i)){
+			startGpu();
+			printf("Gpu found!\r\n");
+			isGpuFound=1;
+			continue;
+		}else if(!isIdeFound&&isIdePresent(i)){
+			printf("Ide found!\r\n");
+			isIdeFound=1;
+			continue;
+		}else{
+			printf("Open bus!\r\n");
+			
+			}
+	}
+}
 
 int main() {
+	initHw();
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stdin, NULL, _IONBF, 0);
-	startGpu();
-	putChar('C');
 	printf("\r\nCurrent drive contents:\r\n");
 	
 	fr = f_mount(&fat,"",0);
@@ -68,6 +110,7 @@ int main() {
 	c = inChar();
 	if(c>96) c-= 32;
 	if(c=='\n'||c=='\r'){
+		
 		printf("\r\n");
 		consoleptr = console;
 		parseConsoleLine(console);

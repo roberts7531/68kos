@@ -27,6 +27,13 @@ _cout:
     btst.b #3,UART_SRAA
     beq.s _cout
     move.b %d1,UART_TBDA
+    
+    movem.L %d0-%d7/%a0-%a7, registerBackup
+    move.l %d1,-(%sp)
+    bsr outcharScreen
+    move.l (%sp)+,%d1
+    movem.L registerBackup,%d0-%d7/%a0-%a7
+
     rts
 _cin:
     btst.b #0,UART_SRAA
@@ -98,6 +105,12 @@ _conout:
         BTST.B #3,UART_SRAA
         BEQ.S _conout
         MOVE.B %D1,(UART_TBDA)
+        movem.L %d0-%d7/%a0-%a7, registerBackup
+        move.l %d1,-(%sp)
+        bsr outcharScreen
+        move.l (%sp)+,%d1
+        movem.L registerBackup,%d0-%d7/%a0-%a7
+
         RTE
 _diskRead: # %D1.L LBA %D2.W LOW COUNT HIGH DISK %A0 DEST
         MOVE.L  %A0,-(%SP)
@@ -118,31 +131,54 @@ _diskWrite:
         RTE
 
 _intHandler1:
+        movem.L %d0-%d7/%a0-%a7, registerBackup
         move.l #1,-(%sp)
         bsr interruptHandler
+        add #4,%sp
+        movem.L registerBackup,%d0-%d7/%a0-%a7
         rte
 _intHandler2:
+        movem.L %d0-%d7/%a0-%a7, registerBackup
         move.l #2,-(%sp)
         bsr interruptHandler
+        add #4,%sp
+        movem.L registerBackup,%d0-%d7/%a0-%a7
         rte
         
 _intHandler3:
+        movem.L %d0-%d7/%a0-%a7, registerBackup
         move.l #3,-(%sp)
         bsr interruptHandler
+        add #4,%sp
+        movem.L registerBackup,%d0-%d7/%a0-%a7
         rte
 _intHandler4:
+        movem.L %d0-%d7/%a0-%a7, registerBackup
         move.l #4,-(%sp)
         bsr interruptHandler
+        add #4,%sp
+        movem.L registerBackup,%d0-%d7/%a0-%a7
         rte
 _intHandler5:
+        movem.L %d0-%d7/%a0-%a7, registerBackup
         move.l #5,-(%sp)
         bsr interruptHandler
+        add #4,%sp
+        movem.L registerBackup,%d0-%d7/%a0-%a7
         rte
 _intHandler6:
+        movem.L %d0-%d7/%a0-%a7, registerBackup
         move.l #6,-(%sp)
         bsr interruptHandler
+        add #4,%sp
+        movem.L registerBackup,%d0-%d7/%a0-%a7
         rte
 _intHandler7:
+        movem.L %d0-%d7/%a0-%a7, registerBackup
         move.l #7,-(%sp)
         bsr interruptHandler
+        add #4,%sp
+        movem.L registerBackup,%d0-%d7/%a0-%a7
         rte
+.section .bss
+registerBackup: ds.l 16

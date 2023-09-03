@@ -58,23 +58,35 @@ struct Ide8 {
 	uint8_t 	filler6;
 	uint8_t 	status;
 };
-volatile struct Ide* disk = (struct Ide*)0x900000; 
-volatile struct Ide8* disk8 = (struct Ide8*)0x900000; 
+volatile struct Ide* disk = (struct Ide*)NULL; 
+volatile struct Ide8* disk8 = (struct Ide8*)NULL; 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
-
-DSTATUS disk_status (
-	BYTE pdrv		/* Physical drive nmuber to identify the drive */
-)
-{
-
-	
-	return RES_OK;
+int waitBusyTimeoutFast(){
+	for(uint32_t i = 0;i<0xfff;i++){
+		if(!(disk->status&0x80)){
+			if(disk->status&0x40){
+				return 0;
+			}
+		}	
+	}
+	return 1;
 }
+int isIdePresent(uint32_t address){
+	if(disk==NULL){
+		disk = (struct Ide*)address;
+		disk8 = (struct Ide8*)address;
+		if(!waitBusyTimeoutFast()){
+			return 1;
+		}
+	}
+	disk = (struct Ide*)NULL;
+	disk8 = (struct Ide8*)NULL;
+	return 0;
 
 
-
+}
 int waitBusyTimeout(){
 	for(uint32_t i = 0;i<0xfffff;i++){
 		if(!(disk->status&0x80)){
@@ -86,6 +98,18 @@ int waitBusyTimeout(){
 	printf("Drive not ready! error:%x\r\n",disk->error);
 	return 1;
 }
+DSTATUS disk_status (
+	BYTE pdrv		/* Physical drive nmuber to identify the drive */
+)
+{
+
+	
+	return RES_OK;
+}
+
+
+
+
 int waitDRQTimeout(){
 	for(uint32_t i = 0;i<0xfffff;i++){
 		if(!(disk->status&0x80)){

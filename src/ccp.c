@@ -147,6 +147,13 @@ void receiveFile(char* name){
     }
     f_close(&file);
 }
+typedef void func(void);
+
+void enterMonitor(){
+        func* startup = (func*)0x720000;
+        startup();
+
+}
 
 void showHelp(void);
 const static struct {
@@ -164,7 +171,8 @@ const static struct {
     {"LIST",listFile,"List ascii file to screen",1},
     {"RUN",runSr,"Load and execute SREC file",1},
     {"HELP",showHelp,"Show this help!",0},
-    {"DOWNLOAD",receiveFile,"Receive a base64 binary",1}
+    {"DOWNLOAD",receiveFile,"Receive a base64 binary",1},
+    {"MONITOR",enterMonitor,"Enter zBug monitor",0}
 };
 
 void showHelp(){

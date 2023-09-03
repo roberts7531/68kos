@@ -1,7 +1,7 @@
 MEMORY
 {
 	RAM(RWX) 	: ORIGIN =	0x0e0000, LENGTH = 128K
-	ROM(RX)		: ORIGIN = 	0x0e0000, LENGTH = 64K
+	ROM(RX)		: ORIGIN = 	0x700000, LENGTH = 256K
 } 
  
  SECTIONS
@@ -10,22 +10,22 @@ MEMORY
 
  	bss_size = SIZEOF(.bss);
 
-	. = 0xe0000;
+	. = 0x700000;
 	.text ALIGN(0x4) : {
  		*(.text.startup);
  		*(.text);
- 	}>RAM
+ 	}>ROM
 	.eh_frame :{
 		*(.eh_frame);
-	}>RAM
+	}>ROM
 	.rodata ALIGN(0x4):
 	{
 		*(.rodata*)
-	}>RAM
+	}>ROM
 	rom_data = .;
-. = 0xf1000;
- 	
- 	
+
+
+. = 0x0e0000;
  	.data ALIGN(0x4): AT (rom_data) {
 		data_start = .;
 		*(.data)

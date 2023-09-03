@@ -30,16 +30,18 @@ IVR = DUART+25
 OPRC = DUART+27
 OPR   = DUART+29
 _start:
-    #dc.l 0xffffe
-    #dc.l reals
+    dc.l 0xffffe
+    dc.l reals
 reals:
     move.w   #0x2000,%SR
 
-    #move.l #0,0xB00000
-   # movea.l #0,%a0
-    #move.l #0xffffe,(%a0)+
-    #move.l #reals,(%a0)+
-   # move.l #0xffffe,%sp
+    move.l #0,0xB00000
+    movea.l #0,%a0
+    lea _start,%a1
+    move.l (%a1)+,(%a0)+
+    move.l (%a1)+,(%a0)+
+    
+    move.l #0xffffe,%sp
 
     movea.l #rom_data,%a0
     movea.l #data_start,%a1
@@ -58,21 +60,20 @@ skipdata:
 skipbss:
     BSR _instVec
 
-    #MOVE.B #0x30,CRA
-    #MOVE.B #0x20,CRA
-    #MOVE.B #0x10,CRA
-    #move.b #0x2,IMR
-	#move.b  #0x93, MRA
-    #move.b  #0x07, MRA
-	#move.b  #0x60, ACR       | Baud Rate Set #2
+    MOVE.B #0x30,CRA
+    MOVE.B #0x20,CRA
+    MOVE.B #0x10,CRA
+    move.b #0x0,IMR
+	move.b  #0x93, MRA
+    move.b  #0x07, MRA
+	move.b  #0x60, ACR       | Baud Rate Set #2
+    move.b CRA,%D0
 
-	#move.b CRA,%D0
+    move.b  #0x66, SRA      | Set Tx and Rx rates to 9600
+    move.b #0x0,CUR
+    move.b #0x2,CLR
+    move.b OPR,%d0
 
-    #move.b  #0x66, SRA      | Set Tx and Rx rates to 9600
-    #move.b #0x0,CUR
-    #move.b #0x2,CLR
-    #move.b OPR,%d0
-
-    #MOVE.B #0x05,CRA
-
+    MOVE.B #0x05,CRA
+    move.b #'A',TBA
     jmp main

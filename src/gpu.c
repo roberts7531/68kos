@@ -4,6 +4,7 @@
 const uint32_t pattNTable = 0x1000;
 
 const uint32_t pattGTable = 0x0000;
+
 static const uint8_t font[] = 
 {
   /*Unicode: U+0020 ( ) , Width: 3 */
@@ -2472,7 +2473,8 @@ static const uint8_t font[] =
 
 };
 
-uint8_t shadowReg[47];
+
+volatile uint8_t shadowReg[47];
 struct GpuReg{
     volatile uint8_t filler;
     volatile uint8_t rwPort;
@@ -2536,11 +2538,20 @@ void loadFont(uint32_t address, const uint8_t* source){
        }
     }
 }
+void loadVram(uint32_t address, const uint8_t* source){
+    writeVram(address,*source);
+    for(int i = 1;i<2048;i++){
+
+        writeVramNext(source[i]);
+        
+       
+    }
+}
 void setPatNameTable(uint32_t address){
     writeReg(2,0x7f&(address>>10));
 }
 char getChar(int x,int y,uint32_t patternNameTable){
-    uint32_t address = y*80+x;
+    uint32_t address = y*32+x;
     address += patternNameTable;
     return readVram(address);
 }
@@ -2556,24 +2567,37 @@ void clearScreen(uint32_t patternNameTable){
         writeVramNext(0);
     }
 }
-void scrollLine(){
-    for(int y = 0; y<23;y++){
-        for(int x=0;x<80;x++){
-            drawChar(x,y,pattNTable,getChar(x,y+1,pattNTable));
-        }
+int foundGpu = 0;
+int isGpuPresent(uint32_t address){
+    if(!foundGpu){
+    gpu = (struct GpuReg*)address;
+    writeVram(0x555,0xaa);
+    if(readVram(0x555)==0xaa){
+        foundGpu = 1;
+        return 1;
     }
+    }
+    return 0;
+
+
 }
+void scrollLine(void);
+
 int printX=0;
 int printY=0;
-void putChar(char c){
+void outcharScreen(uint8_t c){
     if(printX>79){
         printX=0;
         printY++;
     }
-    if(c=='\n'||c=='\r'){
+    if(c=='\n'){
+        drawChar(printX,printY,pattNTable,0);
+
         printX = 0;
         printY++;
     }else if(c==0x8){
+        drawChar(printX,printY,pattNTable,0);
+
         printX--;
         drawChar(printX,printY,pattNTable,0);
         
@@ -2583,32 +2607,48 @@ void putChar(char c){
             printX++;
 
     }
-    if(printY>20){
+    if(printY>23){
         scrollLine();
-        printY=20;
+        printY=23;
     }
+    drawChar(printX,printY,pattNTable,'_');
+
 }
+volatile uint8_t divider =10;
+volatile uint8_t posX = 10;
+volatile uint8_t posY = 50;
+volatile uint8_t dX = 1;
+volatile uint8_t dY = -1;
+void gpuInt(){
+        
+         writeReg(19,0xe0);
+
+}
+void setColGenTable(uint32_t address){
+    writeReg(3,address>>6);
+    writeReg(10,0x7&address>>14);
+}
+
 
 
 void startGpu(){
     writeReg(0,0b00000100);
     writeReg(1,0b01010000);
+    
+    
+    
     writeReg(9,0b00000010);
     writeReg(7,0xff);
-    writeReg(8,0b00001010);
+    writeReg(8,0b00001000);
     setPatNameTable(pattNTable);
     setPatGenTable(pattGTable);
-    writeReg(7,0x50);
+    writeReg(7,0xaf);
     writeReg(12,0x0f);
     
     loadFont(pattGTable,&font);
     clearScreen(pattNTable);
-    char hello[] = "Hello world!";
+    printX=0;
+    printY=0;
 
-
-    for(int i=0;i<13;i++){
-        drawChar(i,0,pattNTable,hello[i]);
-    }
-  
 }
 
